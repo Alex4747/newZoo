@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import styled from "styled-components";
 import Grid from '@mui/material/Grid';
-import {Link} from 'react-router-dom';
 import Header from "../components/Header";
 import axios from "axios";
 
@@ -13,6 +12,18 @@ const ZooMainStyled = styled.div`
 
 const ZooMainAnimalsStyled = styled.div`
   text-align: center;
+  .quote {
+    padding: 20px 0;
+    color: white;
+    font-size: 25px;
+  }
+  button {
+    margin-bottom: 20px;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 20px;
+    cursor: pointer;
+  }
   div {
     div {
       .borderColor {
@@ -29,13 +40,6 @@ const ZooMainAnimalsStyled = styled.div`
           font-size: 30px;
           margin-top: -40px;
           margin-bottom: 20px;
-        }
-        button {
-          margin-top: 10px;
-          border-radius: 5px;
-          padding: 10px 20px;
-          font-size: 20px;
-          cursor: pointer;
         }
         .imageFlex {
           display: flex;
@@ -70,9 +74,6 @@ const ZooMainAnimalsStyled = styled.div`
         .birthDay {
           font-size: 25px;
         }
-        .quote {
-          margin-top: 20px;
-        }
       }
     }
   }
@@ -82,8 +83,10 @@ function Main({animals}) {
   let [satiety, setSatiety] = useState(100);
   let [quote, setQuote] = useState([]);
   const intervalTime = 1000 * 1;
+  let qweewq = 'asdasd';
+  let hungerPeriod = null;
   useEffect(() => {
-    let hungerPeriod = setInterval(() => {
+    hungerPeriod = setInterval(() => {
         setSatiety(satiety -= 10);
         console.log(satiety);
         if (satiety === 0) {
@@ -93,16 +96,44 @@ function Main({animals}) {
 
     axios.get('https://fortnite-api.com/v1/map')
       .then(response => {
-        console.log(response);
-        setQuote(response.data.pois[4].name);
+        setQuote(response.data.data.pois[4].name);
       })
       .catch(error => {
         console.error(error)
       });
   }, []);
 
-  function Feeding() {
-    setSatiety(satiety += 20);
+  useEffect(() => {
+    console.log(satiety);
+    if (satiety === 0) {
+      clearInterval(hungerPeriod)
+    }
+    else if (satiety !== 0 && !hungerPeriod) {
+      hungerPeriod = setInterval(() => {
+        setSatiety((prevSatiety) => prevSatiety -= 10);
+        console.log(satiety);
+        if (satiety === 0) {
+          clearInterval(hungerPeriod);
+        }
+      }, intervalTime)
+    }
+  }, satiety)
+
+  let onFeeding = () => {
+    let Feeding = new Promise((resolve, reject) => {
+      if (satiety <= 80) {
+        setSatiety(satiety += 20)
+      }
+      else {
+        reject('Животное не голодное');
+      }
+    });
+
+    Feeding.then(() => {
+      setSatiety(satiety += 20)
+    }).catch((message) => {
+      console.log(message)
+    })
   }
 
   return (
@@ -111,6 +142,8 @@ function Main({animals}) {
       <ZooMainStyled>
           <main>
             <ZooMainAnimalsStyled>
+              <p className="quote">{quote}</p>
+              <button onClick={onFeeding}>Покормить</button>
               <Grid container spacing={0}>
                 {animals.map((animal) => (
                   <Grid item sm={12} md={6} key={animal.id}>
@@ -122,13 +155,11 @@ function Main({animals}) {
                                 : satiety > 0 ? animal.satiety0
                                   : 'Помер'}
                         </h2>
+                        <h2>{qweewq}</h2>
                         <img className="cage" src="images/cage.png" alt="cage"/>
                         <img className="animal" src={animal.src} alt="animal"/>
                         <p>{animal.name}</p>
                         <p className="birthDay">Родился - {animal.birthday}</p>
-                        <button onClick={Feeding}>Покормить</button>
-                        {/*<p className="quote">{response ? response.data.data.pois[4].name : 'qweqwe'}</p>*/}
-                        {/*<p className="quote">{quote}</p>*/}
                       </div>
                   </Grid>
                 ))}
