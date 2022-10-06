@@ -80,69 +80,40 @@ const ZooMainAnimalsStyled = styled.div`
 `
 
 function Main({animals}) {
-  let [satiety, setSatiety] = useState(100);
-  let [quote, setQuote] = useState([]);
-  const intervalTime = 1000 * 1;
-  let qweewq = 'asdasd';
-  let hungerPeriod = null;
-  useEffect(() => {
-    hungerPeriod = setInterval(() => {
-        setSatiety(satiety -= 10);
-        console.log(satiety);
-        if (satiety === 0) {
-        clearInterval(hungerPeriod);
-      }
-    }, intervalTime)
+  const [timer, setTimer] = useState(0)
+  const [satiety, setSatiety] = useState(100);
 
-    axios.get('https://fortnite-api.com/v1/map')
-      .then(response => {
-        setQuote(response.data.data.pois[4].name);
-      })
-      .catch(error => {
-        console.error(error)
-      });
+  useEffect(() => {
+    setInterval(() => {
+      setTimer((oldTimer) => oldTimer + 1);
+    }, 1000 * 2)
   }, []);
 
   useEffect(() => {
-    console.log(satiety);
-    if (satiety === 0) {
-      clearInterval(hungerPeriod)
-    }
-    else if (satiety !== 0 && !hungerPeriod) {
-      hungerPeriod = setInterval(() => {
-        setSatiety((prevSatiety) => prevSatiety -= 10);
-        console.log(satiety);
-        if (satiety === 0) {
-          clearInterval(hungerPeriod);
-        }
-      }, intervalTime)
-    }
-  }, satiety)
+    setSatiety((oldSatiety) => {
+      if (oldSatiety > 0) {
+        return oldSatiety - 10;
+      } else {
+        return 0
+      }
+    })
+  }, [timer])
 
   let onFeeding = () => {
-    let Feeding = new Promise((resolve, reject) => {
-      if (satiety <= 80) {
-        setSatiety(satiety += 20)
-      }
-      else {
-        reject('Животное не голодное');
-      }
-    });
-
-    Feeding.then(() => {
-      setSatiety(satiety += 20)
-    }).catch((message) => {
-      console.log(message)
-    })
+    if (satiety <= 80) {
+      setSatiety(satiety + 20)
+    }
+    else {
+      console.log('Животное не голодное')
+    }
   }
-
+  
   return (
     <>
     <Header />
       <ZooMainStyled>
           <main>
             <ZooMainAnimalsStyled>
-              <p className="quote">{quote}</p>
               <button onClick={onFeeding}>Покормить</button>
               <Grid container spacing={0}>
                 {animals.map((animal) => (
@@ -155,7 +126,6 @@ function Main({animals}) {
                                 : satiety > 0 ? animal.satiety0
                                   : 'Помер'}
                         </h2>
-                        <h2>{qweewq}</h2>
                         <img className="cage" src="images/cage.png" alt="cage"/>
                         <img className="animal" src={animal.src} alt="animal"/>
                         <p>{animal.name}</p>
